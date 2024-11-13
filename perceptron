@@ -1,0 +1,83 @@
+import numpy as np
+import matplotlib.pyplot as plt  
+
+# Paso 1: Inicializar los pesos (W) y el umbral (theta) con valores pequeños y aleatorios
+def inicializar_pesos(n):
+    # Genera 'n' pesos aleatorios entre -1 y 1, y un valor aleatorio para theta
+    return np.random.uniform(-1, 1, n), np.random.uniform(-1, 1)
+
+# Paso 3: Definir la función de activación (en este caso, una función escalón o umbral)
+def funcion_activacion(valor):
+    # Devuelve 1 si el valor es mayor o igual a 0, de lo contrario devuelve 0
+    return 1 if valor >= 0 else 0
+
+# Paso 4: Calcular el error (diferencia entre la salida deseada y la salida actual)
+def calcular_error(salida_deseada, salida_obtenida):
+    return salida_deseada - salida_obtenida
+
+# Paso 5: Actualizar los pesos basándose en el error y la tasa de aprendizaje
+def actualizar_pesos(pesos, entradas, error, tasa_aprendizaje):
+    # Aplica la fórmula de actualización de pesos
+    return pesos + tasa_aprendizaje * error * entradas
+
+# Función principal de entrenamiento del perceptrón
+def entrenar_perceptron(X, D, tasa_aprendizaje, max_epocas=100):
+    # Inicializar pesos y umbral (theta)
+    n_caracteristicas = X.shape[1]
+    pesos, theta = inicializar_pesos(n_caracteristicas)
+    
+    # Lista para almacenar el error total en cada época
+    errores_por_epoca = []
+
+    for epoca in range(max_epocas):
+        error_total = 0
+        for i in range(len(X)):
+            # Paso 2: Leer el par de entrenamiento (entrada X y salida deseada D)
+            x = X[i]
+            salida_deseada = D[i]
+            
+            # Paso 3: Calcular la salida Y basada en la entrada X y los pesos actuales
+            suma_ponderada = np.dot(x, pesos) - theta
+            y = funcion_activacion(suma_ponderada)
+            
+            # Paso 4: Calcular el error
+            error = calcular_error(salida_deseada, y)
+            error_total += abs(error)
+            
+            # Paso 5: Actualizar los pesos y el umbral (theta)
+            pesos = actualizar_pesos(pesos, x, error, tasa_aprendizaje)
+            theta -= tasa_aprendizaje * error  # Ajusta el umbral
+            
+        # Guardar el error total de esta época
+        errores_por_epoca.append(error_total)
+
+        # Verificar si el error total es cero (indica que el modelo ha convergido)
+        if error_total == 0:
+            print(f"Convergió después de {epoca+1} épocas")
+            break
+    else:
+        print("Se alcanzó el número máximo de épocas sin convergencia")
+    
+    # Devolver los pesos, el umbral y el registro de errores
+    return pesos, theta, errores_por_epoca
+
+# Ejemplo de uso
+# Datos de entrenamiento (X) con las salidas deseadas (D) para la compuerta lógica AND
+X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])  # Entradas para una compuerta AND
+D = np.array([0, 0, 0, 1])  # Salidas deseadas para la compuerta AND
+tasa_aprendizaje = 0.1
+
+# Entrenar el perceptrón
+pesos, theta, errores_por_epoca = entrenar_perceptron(X, D, tasa_aprendizaje)
+
+# Mostrar los pesos y el umbral (theta) finales
+print("Pesos entrenados:", pesos)
+print("Umbral entrenado (theta):", theta)
+
+# Graficar el error total por época
+plt.plot(range(1, len(errores_por_epoca) + 1), errores_por_epoca, marker='o', color='b')
+plt.title("Progreso del aprendizaje del Perceptrón")
+plt.xlabel("Épocas")
+plt.ylabel("Error Total")
+plt.grid()
+plt.show()
